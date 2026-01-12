@@ -16,5 +16,5 @@ spring:
       enabled: true
 
   stripe:
-  secret-key: REMOVED51NxxxxxxxYourTestKeyHere
-  webhook-secret: REMOVEDxxxxxxxxx
+  secret-key: REMOVED1234567890abcdef
+  webhook-secret: REMOVED1234567890abcdef
