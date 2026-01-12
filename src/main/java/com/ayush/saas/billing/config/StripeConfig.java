@@ -9,6 +9,6 @@ public class StripeConfig {
 
     @PostConstruct
     public void init() {
-        Stripe.apiKey = "REMOVEDlocal_dev_key";
+        Stripe.apiKey = "REMOVED51SooEnB04rw3QJ8QnuxJvSMIqazIZAAJ9BBDCx535sC6glYO7nktx46TMl9STPvP6aO3GArBPuzfv3Y2DC4c6pZj00IBZM7guH";
     }
 }

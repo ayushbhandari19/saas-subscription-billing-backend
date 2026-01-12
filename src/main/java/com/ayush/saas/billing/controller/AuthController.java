@@ -4,6 +4,10 @@ import com.ayush.saas.billing.model.User;
 import com.ayush.saas.billing.repository.UserRepository;
 import com.ayush.saas.billing.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import com.stripe.model.Customer;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,22 +18,44 @@ public class AuthController {
 
     private final UserRepository userRepo;
     private final JwtUtil jwt;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder encoder;
 
     @PostMapping("/register")
-    public String register(@RequestBody User user) {
-        user.setPassword(encoder.encode(user.getPassword()));
+    public User register(@RequestBody RegisterRequest req) throws Exception {
+
+        User user = new User();
+        user.setEmail(req.getEmail());
+        user.setPassword(encoder.encode(req.getPassword()));
         user.setRole("USER");
-        userRepo.save(user);
-        return "Registered";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("email", req.getEmail());
+        Customer customer = Customer.create(params);
+
+        user.setStripeCustomerId(customer.getId());
+
+        return userRepo.save(user);
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody User req) {
-        User user = userRepo.findByEmail(req.getEmail()).orElseThrow();
-        if (!encoder.matches(req.getPassword(), user.getPassword()))
-            throw new RuntimeException("Invalid credentials");
+    public Map<String, String> login(@RequestBody Map<String, String> req) {
 
-        return jwt.generateToken(user.getEmail());
+        String email = req.get("email");
+        String password = req.get("password");
+
+        User user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!encoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        String token = jwt.generateToken(user.getEmail());
+
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+
+        return response;
     }
+
 }
